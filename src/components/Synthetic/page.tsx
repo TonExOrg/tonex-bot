@@ -117,7 +117,7 @@ const Synthetic = () => {
   };
 
   return (
-    <div className="w-full max-w-xl mx-auto p-6 rounded-xl bg-gradient-to-br from-gray-900 to-gray-800 shadow-2xl">
+    <div className="w-full max-w-xl mb-10 mx-auto p-6 rounded-xl bg-gradient-to-br from-gray-900 to-gray-800 shadow-2xl">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-white mb-1">Synthetic Token</h1>
         <p className="text-gray-400 text-sm">Transfer tokens across chains</p>

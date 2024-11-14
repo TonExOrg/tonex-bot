@@ -25,7 +25,7 @@ const CreditScore: React.FC = () => {
   };
 
   return (
-    <div className="p-4 bg-gradient-to-r from-[#1f2937] to-[#334155] rounded-lg shadow-lg text-white flex flex-col items-center">
+    <div className="p-4 bg-gray-800 rounded-lg shadow-lg text-white flex flex-col items-center">
       <div className="flex items-center justify-between mb-4 w-full">
         <h2 className="text-2xl font-semibold">Credit Score</h2>
         <button
@@ -61,6 +61,9 @@ const CreditScore: React.FC = () => {
               fontSize: 36,
               transform: "translate(0px, 38px)", 
               color: "white !important",
+            },
+            [`& .${gaugeClasses.valueText} text`]: {
+              fill: "#3b82f6" // <-- change text color
             },
           })}
           text={`${creditScore} / ${maxScore}`}
