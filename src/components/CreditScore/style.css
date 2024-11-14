@@ -1,0 +1,7 @@
+.custom-gauge .MuiGauge-valueText {
+    font-size: 36px;
+    transform: translate(0px, 42px);
+    color: white !important;
+  }
+
+  
