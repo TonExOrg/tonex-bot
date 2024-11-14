@@ -1,5 +1,7 @@
 "use client";
 import React, { useState } from "react";
+import Image from "next/image";
+
 import { TonConnectButton, TonConnectUIProvider } from "@tonconnect/ui-react";
 import SignalCellularAltIcon from "@mui/icons-material/SignalCellularAlt";
 import SwapHorizIcon from "@mui/icons-material/SwapHoriz";
@@ -8,6 +10,8 @@ import CreditScore from "@/components/CreditScore/page";
 import CCIPUI from "@/components/Synthetic/page";
 import Bridge from "@/components/Bridge/page";
 import Collateral from "@/components/Collateral/page";
+import bridgeImage from "@/app/_assets/bridge.png";
+
 const Home = () => {
   const [activeView, setActiveView] = useState("creditScore");
 
@@ -48,7 +52,7 @@ const Home = () => {
           )}
         </div>
         {/* Bottom Navigation Section */}
-        <div className="fixed bottom-20 left-0 right-0 flex flex-col items-center">
+        <div className="fixed bottom-5 left-0 right-0 flex flex-col items-center">
           <div className="bg-gray-700 w-[92%] text-white p-4 rounded-xl shadow-lg flex justify-between space-x-4">
             <button
               className={`flex-1 text-center py-3 px-4 rounded-lg transition-all duration-300 ease-in-out ${
@@ -79,7 +83,7 @@ const Home = () => {
               onClick={() => handleViewChange("swap")}
             >
               <div className="flex items-center justify-center">
-                <img src="/bridge.png" alt="bridge" className="w-8 h-8" />
+                <Image src={bridgeImage} alt="bridge" width={32} height={32} />
               </div>
             </button>
           </div>
