@@ -19,8 +19,13 @@ const Home = () => {
   const handleViewChange = (view: string) => {
     setActiveView(view);
   };
+  const [name, setName] = useState<string | null>("User");
+
   useEffect(() => {
-    WebApp.showAlert("Hey there!");
+    if (typeof window !== 'undefined') {
+      WebApp.showAlert("Hey there!");
+      setName(WebApp.initDataUnsafe.user?.first_name ?? "User");
+    }
   }, []);
 
   return (
@@ -29,7 +34,7 @@ const Home = () => {
         {/* Top Bar Section */}
         <div className="flex justify-between items-center bg-blue-500 text-white p-4">
           <div className="text-xl font-semibold">
-            {WebApp.initDataUnsafe.user?.first_name}
+            {name}
           </div>
           <TonConnectButton className="ton-connect-button" />
         </div>
