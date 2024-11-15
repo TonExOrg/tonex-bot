@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
-// import { ArrowUpDown, Wallet, ChevronDown } from 'lucide-react';
-
+"use client";
+import React, { useState, useEffect } from "react";
 import SwapVertIcon from "@mui/icons-material/SwapVert";
+import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
+import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
+import AccountBalanceWalletOutlinedIcon from "@mui/icons-material/AccountBalanceWalletOutlined";
 import data from "../tokenlist.json";
-import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
-// Define proper types for our data structure
+
 interface Token {
   name: string;
   ticker: string;
@@ -18,138 +19,146 @@ interface ChainData {
   img: string;
 }
 
-// Type assertion for imported data
 const chainData = data as unknown as ChainData[];
+
+// Define TON chain data
+const tonChainData = {
+  chainID: "ton",
+  chainName: "TON",
+  img: "https://cryptologos.cc/logos/toncoin-ton-logo.svg?v=035", // Make sure to add TON logo to public folder
+  tokens: [
+    {
+      name: "TONex",
+      ticker: "TONex",
+      address: "0x...",
+    },
+  ],
+};
 
 const Synthetic = () => {
   const [fromChain, setFromChain] = useState<string>(chainData[0].chainName);
-  const [toChain, setToChain] = useState<string>("TON");
-  const [fromToken, setFromToken] = useState<string>(chainData[0].tokens[0].ticker);
-  const [toToken, setToToken] = useState<string>("Tonex");
-  const [amount, setAmount] = useState<string>('');
+  const [fromToken, setFromToken] = useState<string>(
+    chainData[0].tokens[0].ticker
+  );
+  const [amount, setAmount] = useState<string>("");
   const [fromTokens, setFromTokens] = useState<Token[]>(chainData[0].tokens);
-  const [toTokens, setToTokens] = useState<Token[]>(chainData[1].tokens);
+  const [isLoading, setIsLoading] = useState(false);
+  const [showTooltip, setShowTooltip] = useState(false);
 
-  // Calculate USD value based on a mock price (in reality, you'd fetch this)
   const getUsdValue = (amt: string): number => {
-    const value = parseFloat(amt || '0') * 100; // Mock price of $100 per token
+    const value = parseFloat(amt || "0") * 100;
     return isNaN(value) ? 0 : value;
   };
 
   const handleFromChainChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const chain = e.target.value;
     const chainData = data.find((c) => c.chainName === chain);
-    
-    if (!chainData) {
-      console.error(`Chain data not found for chain: ${chain}`);
-      return;
-    }
-    
+
+    if (!chainData) return;
+
     setFromChain(chain);
     setFromTokens(chainData.tokens);
-    // Safely set the first token if available, otherwise keep current
     if (chainData.tokens.length > 0) {
       setFromToken(chainData.tokens[0].ticker);
     }
   };
 
-  const handleToChainChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const chain = e.target.value;
-    const chainData = data.find((c) => c.chainName === chain);
-    
-    if (!chainData) {
-      console.error(`Chain data not found for chain: ${chain}`);
-      return;
-    }
-    
-    setToChain(chain);
-    setToTokens(chainData.tokens);
-    // Safely set the first token if available, otherwise keep current
-    if (chainData.tokens.length > 0) {
-      setToToken(chainData.tokens[0].ticker);
-    }
-  };
-
-  const handleSwap = () => {
-    // Get current chain data for validation
-    const currentFromChainData = data.find((c) => c.chainName === fromChain);
-    const currentToChainData = data.find((c) => c.chainName === toChain);
-
-    if (!currentFromChainData || !currentToChainData) {
-      console.error('Invalid chain data during swap');
-      return;
-    }
-
-    setFromChain(toChain);
-    setToChain(fromChain);
-    setFromToken(toToken);
-    setToToken(fromToken);
-    setFromTokens(toTokens);
-    setToTokens(fromTokens);
-  };
-
   const handleMaxAmount = () => {
-    setAmount('1000'); // Mock maximum amount
+    setAmount("1000");
   };
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    // Only allow valid numbers
-    if (value === '' || /^\d*\.?\d*$/.test(value)) {
+    if (value === "" || /^\d*\.?\d*$/.test(value)) {
       setAmount(value);
     }
   };
 
-  // Get chain image safely
   const getChainImage = (chainName: string): string => {
+    if (chainName === "TON") return tonChainData.img;
     const chain = data.find((c) => c.chainName === chainName);
-    return chain?.img || '/default-chain-icon.png'; // Provide a default image path
+    return (
+      chain?.img ||
+      "https://e7.pngegg.com/pngimages/944/167/png-clipart-blockchain-computer-icons-blockchain-miscellaneous-angle-thumbnail.png"
+    );
   };
 
-  // Validate if the form is ready for submission
   const isFormValid = (): boolean => {
     const amountNum = parseFloat(amount);
-    return amount !== '' && 
-           !isNaN(amountNum) && 
-           amountNum > 0 && 
-           fromChain !== toChain &&
-           fromToken !== '';
+    return (
+      amount !== "" && !isNaN(amountNum) && amountNum > 0 && fromToken !== ""
+    );
+  };
+
+  const handleSynthesize = async () => {
+    if (!isFormValid()) return;
+
+    setIsLoading(true);
+    // Simulate API call
+    setTimeout(() => {
+      setIsLoading(false);
+      // Show success message or handle next steps
+    }, 2000);
   };
 
   return (
-    <div className="w-full max-w-xl mb-10 mx-auto p-6 rounded-xl bg-gradient-to-br from-gray-900 to-gray-800 shadow-2xl">
+    <div className="synthetic-container w-full max-w-xl mx-auto p-4 sm:p-6 rounded-xl bg-gradient-to-br from-gray-900 to-gray-800 shadow-2xl transition-all duration-300">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-white mb-1">Synthetic Token</h1>
-        <p className="text-gray-400 text-sm">Transfer tokens across chains</p>
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-2xl font-bold text-white mb-1">
+              Synthetic Token
+            </h1>
+            <p className="text-gray-400 text-sm">
+              Convert tokens to TONex synthetic tokens
+            </p>
+          </div>
+          <div className="relative">
+            <button
+              onMouseEnter={() => setShowTooltip(true)}
+              onMouseLeave={() => setShowTooltip(false)}
+              className="p-2 rounded-full hover:bg-gray-700/50 transition-colors"
+            >
+              <InfoOutlinedIcon className="text-gray-400 hover:text-white transition-colors" />
+            </button>
+            {showTooltip && (
+              <div className="absolute right-0 mt-2 p-2 bg-gray-800 text-sm text-gray-300 rounded-lg shadow-xl z-10 w-64">
+                Create synthetic tokens on TON blockchain representing tokens
+                from other chains
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* From Section */}
-      <div className="bg-gray-800/50 p-4 rounded-lg mb-2">
+      <div className="bg-gray-800/50 p-4 rounded-lg mb-2 hover:bg-gray-800/60 transition-colors">
         <div className="flex justify-between mb-2">
           <span className="text-gray-400 text-sm">From</span>
-          <button 
-            onClick={handleMaxAmount} 
-            className="text-blue-400 text-sm hover:text-blue-300 transition-colors"
+          <button
+            onClick={handleMaxAmount}
+            className="flex items-center space-x-1 text-blue-400 text-sm hover:text-blue-300 transition-colors"
           >
-            Balance: 1,000
+            <AccountBalanceWalletOutlinedIcon className="w-4 h-4" />
+            <span>Balance: 1,000</span>
           </button>
         </div>
-        
-        <div className="flex gap-2">
+
+        <div className="flex gap-2 flex-col sm:flex-row">
           <div className="flex-1">
-            <div className="relative">
+            <div className="relative group">
               <select
                 value={fromChain}
                 onChange={handleFromChainChange}
-                className="w-full pl-10 pr-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full pl-10 pr-8 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500 hover:border-gray-500 transition-colors"
               >
-                {chainData.map(chain => (
+                {chainData.map((chain) => (
                   <option key={chain.chainID} value={chain.chainName}>
                     {chain.chainName}
                   </option>
                 ))}
               </select>
-              <ArrowDropDownIcon className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <ArrowDropDownIcon className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 group-hover:text-white transition-colors" />
               <img
                 src={getChainImage(fromChain)}
                 alt=""
@@ -157,19 +166,22 @@ const Synthetic = () => {
               />
             </div>
           </div>
-          
+
           <div className="flex-1">
-            <select
-              value={fromToken}
-              onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setFromToken(e.target.value)}
-              className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              {fromTokens.map(token => (
-                <option key={token.ticker} value={token.ticker}>
-                  {token.ticker}
-                </option>
-              ))}
-            </select>
+            <div className="relative group">
+              <select
+                value={fromToken}
+                onChange={(e) => setFromToken(e.target.value)}
+                className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500 hover:border-gray-500 transition-colors"
+              >
+                {fromTokens.map((token) => (
+                  <option key={token.ticker} value={token.ticker}>
+                    {token.ticker}
+                  </option>
+                ))}
+              </select>
+              <ArrowDropDownIcon className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 group-hover:text-white transition-colors" />
+            </div>
           </div>
         </div>
 
@@ -187,79 +199,67 @@ const Synthetic = () => {
         </div>
       </div>
 
-      {/* Swap Button */}
-      <div className="relative h-0">
-        <button
-          onClick={handleSwap}
-          className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 p-2 rounded-full bg-gray-700 hover:bg-gray-600 transition-colors border border-gray-600 z-10"
-          disabled
-        >
-          <SwapVertIcon className="w-5 h-5 text-blue-400" />
-        </button>
+      {/* Arrow Icon */}
+      <div className="relative h-12 flex items-center justify-center">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-gray-700"></div>
+        </div>
+        <div className="relative z-10 bg-gray-800 p-2 rounded-full">
+          <SwapVertIcon className="text-blue-400 w-6 h-6" />
+        </div>
       </div>
 
-      {/* To Section */}
-      <div className="bg-gray-800/50 p-4 rounded-lg mt-2">
+      {/* To Section (Fixed TON) */}
+      <div className="bg-gray-800/50 p-4 rounded-lg mt-2 hover:bg-gray-800/60 transition-colors">
         <div className="mb-2">
           <span className="text-gray-400 text-sm">To</span>
         </div>
-        
-        <div className="flex gap-2">
+
+        <div className="flex gap-2 flex-col sm:flex-row">
           <div className="flex-1">
             <div className="relative">
-              <select
-                value={toChain}
-                onChange={handleToChainChange}
-                className="w-full pl-10 pr-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500"
-                disabled
-              >
-                {chainData.map(chain => (
-                  <option key={chain.chainID} value={chain.chainName}>
-                    {chain.chainName}
-                  </option>
-                ))}
-              </select>
-              <ArrowDropDownIcon className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <div className="w-full pl-10 pr-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white cursor-not-allowed">
+                TON
+              </div>
               <img
-                src={getChainImage(toChain)}
-                alt=""
+                src={getChainImage("TON")}
+                alt="TON"
                 className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full"
               />
             </div>
           </div>
-          
+
           <div className="flex-1">
-            <select
-              value={toToken}
-              onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setToToken(e.target.value)}
-              className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500"
-              disabled
-            >
-              {toTokens.map(token => (
-                <option key={token.ticker} value={token.ticker}>
-                  {token.ticker}
-                </option>
-              ))}
-            </select>
+            <div className="relative">
+              <div className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white cursor-not-allowed">
+                TONex
+              </div>
+            </div>
           </div>
         </div>
 
         <div className="mt-3">
-          <div className="text-2xl text-white">
-            {amount || '0.0'}
-          </div>
+          <div className="text-2xl text-white">{amount || "0.0"}</div>
           <div className="text-gray-400 text-sm mt-1">
             ≈ ${getUsdValue(amount).toLocaleString()}
           </div>
         </div>
       </div>
 
-      {/* Exchange Button */}
-      <button 
-        className="w-full mt-6 py-4 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
-        disabled={!isFormValid()}
+      {/* Synthesize Button */}
+      <button
+        onClick={handleSynthesize}
+        disabled={!isFormValid() || isLoading}
+        className="w-full mt-6 py-4 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-[1.02] active:scale-[0.98] relative overflow-hidden"
       >
-        Bridge Tokens
+        {isLoading ? (
+          <div className="flex items-center justify-center space-x-2">
+            <div className="w-5 h-5 border-t-2 border-white rounded-full animate-spin" />
+            <span>Processing...</span>
+          </div>
+        ) : (
+          "Create Synthetic Token"
+        )}
       </button>
     </div>
   );

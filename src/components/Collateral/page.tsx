@@ -7,7 +7,7 @@ const Collateral = () => {
   const chains = ["Ethereum", "Avalanche", "Polygon", "Solana"];
 
   return (
-    <div className="bg-gray-800 w-80 h-80 rounded-lg shadow-md flex flex-col justify-between p-6">
+    <div className="bg-gray-800 h-80 rounded-lg shadow-md flex flex-col justify-between p-4">
       <div className="flex justify-between items-center">
         <h2 className="text-white font-bold">Borrow</h2>
         <div className="relative">
