@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
 
 import { TonConnectButton, TonConnectUIProvider } from "@tonconnect/ui-react";
@@ -11,20 +11,26 @@ import CCIPUI from "@/components/Synthetic/page";
 import Bridge from "@/components/Bridge/page";
 import Collateral from "@/components/Collateral/page";
 import bridgeImage from "@/app/_assets/bridge.png";
-
+import { log } from "console";
+import WebApp from "@twa-dev/sdk";
 const Home = () => {
   const [activeView, setActiveView] = useState("creditScore");
 
   const handleViewChange = (view: string) => {
     setActiveView(view);
   };
+  useEffect(() => {
+    WebApp.showAlert("Hey there!");
+  }, []);
 
   return (
     <TonConnectUIProvider manifestUrl="https://blush-major-turkey-395.mypinata.cloud/ipfs/QmetdVVHN5ttyi4tv4yGb3u6ugAihfu6ZjHUUfHhJz1ko7">
       <div className="min-h-screen flex flex-col bg-gradient-to-r from-[#1f2937] to-[#334155] ">
         {/* Top Bar Section */}
         <div className="flex justify-between items-center bg-blue-500 text-white p-4">
-          <div className="text-xl font-semibold">Host Name</div>
+          <div className="text-xl font-semibold">
+            {WebApp.initDataUnsafe.user?.first_name}
+          </div>
           <TonConnectButton className="ton-connect-button" />
         </div>
 
