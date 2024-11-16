@@ -42,7 +42,7 @@ const Home = () => {
           {/* Top Bar Section */}
           <div className="glass-effect flex flex-col sm:flex-row justify-between items-center p-3 sm:p-4 animate-fade-in space-y-2 sm:space-y-0">
             <div className="text-lg sm:text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400">
-              {name}
+              Hey,{name}
             </div>
             <div className="w-full sm:w-auto flex justify-center">
               <TonConnectButton className="ton-connect-button hover-scale transform-none sm:transform" />
