@@ -1,14 +1,54 @@
 import { Gauge, gaugeClasses } from "@mui/x-charts";
 import React, { useState } from "react";
+import axios from "axios";
+import { ethers } from 'ethers';
 import "./style.css";
 
 const CreditScore: React.FC = () => {
   const maxScore = 1000;
+  const [account, setAccount] = useState<string | null>(null);
   const [creditScore, setCreditScore] = useState(0);
   const [percentage, setPercentage] = useState(0);
 
-  const handleCalculate = () => {
-    const newScore = Math.floor(Math.random() * (maxScore + 1));
+  const accessToken = '2a316b0f55fabc65873eeeec5ebf30fa846fa617'
+  // const accessToken = process.env.REACT_APP_CRED_API_TOKEN
+  const accountAddressExample = '0xB1A296a720D9AAF5c5e9F805d8095e6d94882eE1'
+
+  async function getCreditScore(accountAddress: string): Promise<number> {
+    const url = `https://beta.credprotocol.com/api/score/address/${accountAddress}/`;
+
+    try {
+      const response = await axios.get(url, {
+        headers: {
+          Authorization: `Token ${accessToken}`,
+        },
+      });
+
+      console.log("Credit Score:", response.data);
+      // Return the score if found, otherwise return 0
+      return response.data.value || 0;  
+    } catch (error) {
+      console.error("Error fetching credit score:", error);
+      return 0;
+    }
+  }
+
+  // const getAddress = async () => {
+	// 	let userAddress = "";
+	// 	if (typeof window.ethereum !== 'undefined') {
+	// 		await window.ethereum.request({ method: 'eth_requestAccounts' });
+	// 		const provider = new ethers.(window.ethereum);
+	// 		await provider.send("eth_requestAccounts", []);
+	// 		const signer = await provider.getSigner();
+	// 		 userAddress = await signer.getAddress();
+	// 	}
+	// 	return userAddress
+	// }
+
+  const handleCalculate = async () => {
+    // const newScore = Math.floor(Math.random() * (maxScore + 1));
+    const newScore = await getCreditScore(accountAddressExample);
+    console.log(newScore)
     setCreditScore(newScore);
 
     let startPercentage = 0;

@@ -10,22 +10,29 @@
     "configbot": "node configure.mjs"
   },
   "dependencies": {
+    "@aws-crypto/sha256-js": "^5.2.0",
     "@emotion/react": "^11.13.3",
     "@emotion/styled": "^11.13.0",
     "@mui/icons-material": "^6.1.7",
     "@mui/material": "^6.1.7",
     "@mui/x-charts": "^7.22.2",
+    "@orbs-network/ton-access": "^2.3.3",
+    "@ton/ton": "^15.1.0",
     "@tonconnect/ui-react": "^2.0.9",
     "@twa-dev/sdk": "^7.10.1",
     "@vkruglikov/react-telegram-web-app": "^2.1.9",
     "axios": "^1.7.7",
     "eruda": "^3.0.1",
+    "ethers": "^6.13.4",
     "next": "14.2.4",
     "next-intl": "^3.17.6",
     "normalize.css": "^8.0.1",
     "react": "^18",
     "react-dom": "^18",
-    "tonweb": "^0.0.66"
+    "ton": "^13.9.0",
+    "ton-core": "^0.53.0",
+    "tonweb": "^0.0.66",
+    "web3": "^4.15.0"
   },
   "devDependencies": {
     "@types/node": "^20",

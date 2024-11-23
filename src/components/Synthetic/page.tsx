@@ -5,6 +5,35 @@ import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import AccountBalanceWalletOutlinedIcon from "@mui/icons-material/AccountBalanceWalletOutlined";
 import data from "../tokenlist.json";
+import { get } from "http";
+import { fromNano } from '@ton/core';
+// import { JettonMinter, mintBody } from '../../../../Ton-Contracts/wrappers/JettonMinter';
+import { JettonMinter } from './wrappers/JettonMinter';
+import '../../../../Ton-Contracts/scripts/deployMint'
+// import { JettonMinter } from "../../../../Ton-Contracts/wrappers/JettonMinter";
+import {
+  SendTransactionRequest,
+  TonConnect,
+  TonConnectUI,
+  TonConnectUIProvider,
+  useTonAddress,
+  useTonConnectUI,
+  useTonWallet,
+} from "@tonconnect/ui-react";
+import {
+  Address,
+  beginCell,
+  OpenedContract,
+  Sender,
+  SenderArguments,
+  storeStateInit,
+  toNano,
+  TonClient,
+} from "@ton/ton";
+import { Wallet } from "ethers";
+import { useTonConnect } from "@/hooks/useTonConnect";
+import { useAsyncInitialize } from "@/hooks/useAsyncInitialize";
+import { useTonClient } from "@/hooks/useTonClient";
 
 interface Token {
   name: string;
@@ -29,26 +58,75 @@ const tonChainData = {
   tokens: [
     {
       name: "TONex",
-      ticker: "TONex",
+      ticker: "TONex",      
       address: "0x...",
     },
   ],
 };
 
+const tokenAddressMap: { [key: string]: string } = {
+  "eth": "EQBd-WK72MdjLDMg0-19vXo0CYnFoXHcMSdUWj45TrzA3CDg",
+  "key2": "value2",
+  "key3": "value3"
+};
+
+const contractAddress = Address.parse('EQBd-WK72MdjLDMg0-19vXo0CYnFoXHcMSdUWj45TrzA3CDg');
+  
+const getCounterInstance = async () => {
+  const client = new TonClient({
+    endpoint: "https://testnet.toncenter.com/api/v2/jsonRPC",
+  });
+
+  // const c = client.provider();
+  // OR you can use createApi from @ton-community/assets-sdk
+  // import {
+  //   createApi,
+  // } from "@ton-community/assets-sdk";
+
+  // const NETWORK = "testnet";
+  // const client = await createApi(NETWORK);
+
+
+  // const address = Address.parse(CONTRACT_ADDRESS);
+  // run(client);
+    // const provider = new TonConnectUI();
+// // create a new instance of TonConnectProvider;
+  // const sender = new TonConnectUIProvider(provider);
+  client.isContractDeployed(contractAddress).then((res) => {
+    console.log(`Contract is deployed: ${res}`);
+  });
+  const counterInstance = client.open(JettonMinter.createFromAddress(contractAddress) as any,
+    );
+
+  return counterInstance;     
+};
+
 const Synthetic = () => {
-  const [fromChain, setFromChain] = useState<string>(chainData[0].chainName);
+  const [fromChain, setFromChain] = useState<string>(chainData[0].chainName);`  `
   const [fromToken, setFromToken] = useState<string>(
     chainData[0].tokens[0].ticker
   );
   const [amount, setAmount] = useState<string>("");
   const [fromTokens, setFromTokens] = useState<Token[]>(chainData[0].tokens);
+  const [synTokenName, setSynTokenName] = useState<string>("---");
   const [isLoading, setIsLoading] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
-
+const [tonconnect] = useTonConnectUI();
   const getUsdValue = (amt: string): number => {
     const value = parseFloat(amt || "0") * 100;
     return isNaN(value) ? 0 : value;
   };
+  const client = useTonClient();
+  const {sender} = useTonConnect();
+  // const getTokenName = () => {
+  //   if (fromToken === "WETH") setSynTokenName("TnWETH");
+  //   else if (fromToken === "ETH") setSynTokenName("TnETH");
+  //   else if (fromToken === "USDC") setSynTokenName("TnUSDC");
+  //   else if (fromToken === "WBTC") setSynTokenName("TnWBTC");
+  //   else if (fromToken === "USDT") setSynTokenName("TnUSDT");
+  //   else setSynTokenName("---");
+  //   return synTokenName;
+  // }
 
   const handleFromChainChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const chain = e.target.value;
@@ -90,9 +168,58 @@ const Synthetic = () => {
     );
   };
 
+  const wallet = useTonWallet();
+    
   const handleSynthesize = async () => {
     if (!isFormValid()) return;
+    
+    let address = wallet?.account?.address as string;
+    let senderAddress = Address.parse(address);
+    console.log(`address ${address} ${senderAddress}`);
+    // let senderAddress = senderAddress; // Modify this to another address if you want to mint to someone else
+    let mintAmount = 1;
+    const jettonMinter = await getCounterInstance();  
+    if(!jettonMinter) return;
+    const supplyBefore = await jettonMinter.getTotalSupply();
+    const nanoMint = toNano(mintAmount);
 
+    console.log("Sending transaction. Approve in your wallet...");
+    const res = await jettonMinter.sendMint(sender, contractAddress, senderAddress, nanoMint, toNano('0.05'), toNano('0.1'));
+    
+    // const tx: SendTransactionRequest = {
+    //   validUntil: Date.now() + 5 * 60 * 1000,
+    //   messages: [
+    //     {
+    //       address: contractAddress.toString(),
+    //       amount: toNano(0.04).toString(),
+    //       stateInit: undefined,
+    //       payload: mintBody(senderAddress, nanoMint, toNano(0.02), 0)
+    //         .toBoc()
+    //         .toString("base64"),
+    //     },
+    //   ],
+    // };
+
+    // await tonconnect.sendTransaction(tx);
+    
+    console.log("Sent transaction");
+
+    console.log("Minting ${mintAmount} tokens to ${senderAddress} and waiting 20s...");
+
+    await new Promise((resolve) => setTimeout(resolve, 20000));
+    const supplyAfter = await jettonMinter.getTotalSupply();
+
+    if (supplyAfter == supplyBefore + nanoMint) {
+        const totalSupply = Number(fromNano(supplyAfter));
+        console.log('Mint successful!');  
+        // console.log(`Current supply: ${totalSupply} tokens (${totalSupply} ETH ≈ $${(totalSupply * ethPrice).toFixed(2)})`);
+    } else {
+        console.log('Mint failed!');
+    }
+    
+    //TODO: Add EVM provider for token collection
+    // const wallet = useTonWallet();
+    // const provider = wallet?.provider;
     setIsLoading(true);
     // Simulate API call
     setTimeout(() => {
@@ -194,7 +321,7 @@ const Synthetic = () => {
             className="w-full bg-transparent text-2xl text-white placeholder-gray-500 focus:outline-none"
           />
           <div className="text-gray-400 text-sm mt-1">
-            ≈ ${getUsdValue(amount).toLocaleString()}
+            {/* ≈ ${getUsdValue(amount).toLocaleString()} */}
           </div>
         </div>
       </div>
@@ -232,7 +359,7 @@ const Synthetic = () => {
           <div className="flex-1">
             <div className="relative">
               <div className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white cursor-not-allowed">
-                TONex
+                Tn{fromToken || "0.0"}
               </div>
             </div>
           </div>
@@ -241,7 +368,7 @@ const Synthetic = () => {
         <div className="mt-3">
           <div className="text-2xl text-white">{amount || "0.0"}</div>
           <div className="text-gray-400 text-sm mt-1">
-            ≈ ${getUsdValue(amount).toLocaleString()}
+            {/* ≈ ${getUsdValue(amount).toLocaleString()} */}
           </div>
         </div>
       </div>
