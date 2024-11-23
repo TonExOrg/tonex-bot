@@ -17,6 +17,7 @@ import Collateral from "@/components/Collateral/page";
 import bridgeImage from "@/app/_assets/bridge.png";
 import { log } from "console";
 import WebApp from "@twa-dev/sdk";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
 
 const Home = () => {
   const [activeView, setActiveView] = useState("creditScore");
@@ -46,6 +47,9 @@ const Home = () => {
             </div>
             <div className="w-full sm:w-auto flex justify-center">
               <TonConnectButton className="ton-connect-button hover-scale transform-none sm:transform" />
+            </div>
+           c <div className="ml-auto flex items-center ">
+              <ConnectButton accountStatus={"avatar"} chainStatus={"icon"} />
             </div>
           </div>
 

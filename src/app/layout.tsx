@@ -4,8 +4,7 @@ import "./globals.css";
 import localFont from "next/font/local";
 
 import "normalize.css/normalize.css";
-import "./_assets/globals.css";
-import { TonConnectUIProvider } from "@tonconnect/ui-react";
+import Providers from "@/components/Providers"; // Import the new Providers component
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -23,13 +22,13 @@ export const metadata: Metadata = {
   description: "Your application description goes here",
 };
 
-export default async function RootLayout({ children }: PropsWithChildren) {
+export default function RootLayout({ children }: PropsWithChildren) {
   return (
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-          {children}
+        <Providers>{children}</Providers> 
       </body>
     </html>
   );
