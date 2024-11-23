@@ -5,6 +5,7 @@ import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import AccountBalanceWalletOutlinedIcon from "@mui/icons-material/AccountBalanceWalletOutlined";
 import data from "../tokenlist.json";
+import { fetchTonPrice } from "../PriceFeed/TonPrice";
 
 interface Token {
   name: string;
@@ -45,11 +46,24 @@ const Synthetic = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
 
-  const getUsdValue = (amt: string): number => {
+  const getUsdValue =  (amt: string): number => {
+    
     const value = parseFloat(amt || "0") * 100;
     return isNaN(value) ? 0 : value;
   };
 
+  const getFetch = async (amt: string) => {
+    const tonPrice = await fetchTonPrice()
+    console.log(tonPrice)
+
+  };
+  
+  
+  useEffect(() => {
+    getUsdValue("100");
+    getFetch("100");  
+
+  },[])
   const handleFromChainChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const chain = e.target.value;
     const chainData = data.find((c) => c.chainName === chain);
