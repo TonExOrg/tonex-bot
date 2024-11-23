@@ -5,6 +5,7 @@ import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import AccountBalanceWalletOutlinedIcon from "@mui/icons-material/AccountBalanceWalletOutlined";
 import data from "../tokenlist.json";
+
 import { get } from "http";
 import { fromNano } from '@ton/core';
 // import { JettonMinter, mintBody } from '../../../../Ton-Contracts/wrappers/JettonMinter';
@@ -34,6 +35,9 @@ import { Wallet } from "ethers";
 import { useTonConnect } from "@/hooks/useTonConnect";
 import { useAsyncInitialize } from "@/hooks/useAsyncInitialize";
 import { useTonClient } from "@/hooks/useTonClient";
+
+import { fetchTonPrice } from "../PriceFeed/TonPrice";
+
 
 interface Token {
   name: string;
@@ -111,8 +115,11 @@ const Synthetic = () => {
   const [synTokenName, setSynTokenName] = useState<string>("---");
   const [isLoading, setIsLoading] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
+
 const [tonconnect] = useTonConnectUI();
-  const getUsdValue = (amt: string): number => {
+
+  const getUsdValue =  (amt: string): number => {
+
     const value = parseFloat(amt || "0") * 100;
     return isNaN(value) ? 0 : value;
   };
@@ -128,6 +135,18 @@ const [tonconnect] = useTonConnectUI();
   //   return synTokenName;
   // }
 
+  const getFetch = async (amt: string) => {
+    const tonPrice = await fetchTonPrice()
+    console.log(tonPrice)
+
+  };
+  
+  
+  useEffect(() => {
+    getUsdValue("100");
+    getFetch("100");  
+
+  },[])
   const handleFromChainChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const chain = e.target.value;
     const chainData = data.find((c) => c.chainName === chain);
