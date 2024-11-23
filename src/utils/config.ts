@@ -10,6 +10,7 @@ import {
   arbitrumSepolia,
   localhost,
   mainnet,
+  sepolia,
 } from "wagmi/chains"
 
 const { wallets } = getDefaultWallets()
@@ -34,7 +35,7 @@ export const config = getDefaultConfig({
   chains: [
     mainnet,
     ...(process.env.NEXT_PUBLIC_ENABLE_TESTNETS === "true"
-      ? [arbitrumSepolia, arbitrum, localhost]
+      ? [arbitrumSepolia, arbitrum, localhost,sepolia]
       : []),
   ],
   ssr: true,
