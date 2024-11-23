@@ -1,8 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
     output: 'export',
-    basePath: '/tonex', // Replace 'repo-name' with your GitHub repository name
-    assetPrefix: '/tonex',
+    basePath: '/tonex-bot', // Replace 'repo-name' with your GitHub repository name
+    assetPrefix: '/tonex-bot',
   };
   
   export default nextConfig;
