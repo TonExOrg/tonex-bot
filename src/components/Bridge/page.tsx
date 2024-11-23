@@ -5,6 +5,27 @@ import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import AccountBalanceWalletOutlinedIcon from '@mui/icons-material/AccountBalanceWalletOutlined';
 import data from "../tokenlist.json";
+import "buffer";
+// import { SendTon } from './SendTon';
+// import {SendTon} from  "../../../../Ton-Contracts/wrappers/SendTon";
+import {run} from "../../../../Ton-Contracts/scripts/sendTon"
+import {ST1} from "../../../../Ton-Contracts/build/ST1/tact_ST1"
+import {
+  TonConnectUI,
+  useTonConnectUI,
+  useTonWallet,
+} from "@tonconnect/ui-react";
+import {
+  Address,
+  beginCell,
+  Sender,
+  SenderArguments,
+  storeStateInit,
+  toNano,
+  TonClient,
+} from "@ton/ton";
+import { TonClient4 } from 'ton';
+// import { useGetSender } from '@/hooks/useTonClient';
 
 interface Token {
   name: string;
@@ -19,9 +40,115 @@ interface ChainData {
   img: string;
 }
 
+class TonConnectProvider implements Sender {
+  /**
+   * The TonConnect UI instance.
+   * @private
+   */
+  private readonly provider: TonConnectUI;
+
+  /**
+   * The address of the current account.
+   */
+  public get address(): Address | undefined {
+    const address = this.provider.account?.address;
+    return address ? Address.parse(address) : undefined;
+  }
+
+  /**
+   * Creates a new TonConnectProvider.
+   * @param provider
+   */
+  public constructor(provider: TonConnectUI) {
+    this.provider = provider;
+  }
+
+  /**
+   * Sends a message using the TonConnect UI.
+   * @param args
+   */
+  public async send(args: SenderArguments): Promise<void> {
+    // The transaction is valid for 10 minutes.
+    const validUntil = Math.floor(Date.now() / 1000) + 600;
+
+    // The address of the recipient, should be in bounceable format for all smart contracts.
+    const address = args.to.toString({ urlSafe: true, bounceable: true });
+
+    // The address of the sender, if available.
+    const from = this.address?.toRawString();
+
+    // The amount to send in nano tokens.
+    const amount = args.value.toString();
+
+    // The state init cell for the contract.
+    let stateInit: string | undefined;
+    if (args.init) {
+      // State init cell for the contract.
+      const stateInitCell = beginCell()
+        .store(storeStateInit(args.init))
+        .endCell();
+      // Convert the state init cell to boc base64.
+      stateInit = stateInitCell.toBoc().toString("base64");
+    }
+
+    // The payload for the message.
+    let payload: string | undefined;
+    if (args.body) {
+      // Convert the message body to boc base64.
+      payload = args.body.toBoc().toString("base64");
+    }
+
+    // Send the message using the TonConnect UI and wait for the message to be sent.
+    await this.provider.sendTransaction({
+      validUntil: validUntil,
+      from: from,
+      messages: [
+        {
+          address: address,
+          amount: amount,
+          stateInit: stateInit,
+          payload: payload,
+        },
+      ],
+    });
+  }
+}
+
+
+const CONTRACT_ADDRESS = "EQCqFVMpbj-IfUUteW_ZZ57PQ2BFWb4IsCqz52G-t8ebicjO";
+
+const getCounterInstance = async () => {
+  const client = new TonClient({
+    endpoint: "https://testnet.toncenter.com/api/v2/jsonRPC",
+  });
+  // OR you can use createApi from @ton-community/assets-sdk
+  // import {
+  //   createApi,
+  // } from "@ton-community/assets-sdk";
+
+  // const NETWORK = "testnet";
+  // const client = await createApi(NETWORK);
+
+
+  const address = Address.parse(CONTRACT_ADDRESS);
+  // run(client);
+//   const provider = new TonConnectUI();
+// // create a new instance of TonConnectProvider
+//   const sender = new TonConnectProvider(provider);
+  const counterInstance = client.open(ST1.fromAddress(
+        Address.parse(CONTRACT_ADDRESS)
+    ) as any);
+
+  return counterInstance;     
+};
+
+
+
 const chainData = data as unknown as ChainData[];
 
 const BridgeComponent = () => {
+  const [tonConnectUI, setOptions] = useTonConnectUI();
+  const wallet = useTonWallet();
   const [fromChain, setFromChain] = useState<string>(chainData[0].chainName);
   const [toChain, setToChain] = useState<string>(chainData[1].chainName);
   const [fromToken, setFromToken] = useState<string>(chainData[0].tokens[0].ticker);
@@ -31,6 +158,49 @@ const BridgeComponent = () => {
   const [toTokens, setToTokens] = useState<Token[]>(chainData[1].tokens);
   const [isLoading, setIsLoading] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
+    const [TonConnectUI] = useTonConnectUI();
+function useConnection(): { sender: Sender } {
+
+	return {
+		sender: {
+		  send: async (args: SenderArguments) => {
+			TonConnectUI.sendTransaction({
+			  messages: [
+				{
+				  address: args.to.toString(),
+				  amount: args.value.toString(),
+				  payload: args.body?.toBoc().toString("base64"),
+				},
+			  ],
+			  validUntil: Date.now() + 6 * 60 * 1000, 
+			});
+		  },
+		},
+	  };
+}
+  const increaseCount = async (amount: String) => {
+    const counterInstance = await getCounterInstance();
+    const sender = new TonConnectProvider(tonConnectUI);
+    const getSender =  useConnection();
+    await counterInstance.send(
+        useConnection().sender,
+        {
+            value: toNano(0.1), // toNano('0.1')  
+        },
+        {
+            $$type: 'Withdraw',
+            amount: toNano(amount.toString()),
+        }
+    );
+    // await counterInstance.sendRequestTON(sender, toNano(amount.toString()));
+  };
+
+  const getCount = async () => {
+    const counterInstance = await getCounterInstance();
+
+    const count = await counterInstance.getBalance();
+    console.log("count", count);
+  };
 
   const getUsdValue = (amt: string): number => {
     const value = parseFloat(amt || '0') * 100;
@@ -113,7 +283,10 @@ const BridgeComponent = () => {
 
   const handleBridge = async () => {
     if (!isFormValid()) return;
-    
+
+    getCount();
+    increaseCount("0.5");
+
     setIsLoading(true);
     // Simulate API call
     setTimeout(() => {
